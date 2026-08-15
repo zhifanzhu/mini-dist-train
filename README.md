@@ -10,7 +10,7 @@ After completing the core track, you should be able to:
 
 - explain the SPMD/process-group model used by `torch.distributed`;
 - reason precisely about `all_reduce`, `all_gather`, `reduce_scatter`, `broadcast`, and point-to-point send/recv;
-- implement a small ring all-reduce from send/recv and understand why production frameworks normally delegate collectives to communication backends;
+- implement small ring and tree all-reduces from point-to-point operations and understand why production frameworks normally delegate collectives to communication backends;
 - implement replicated data parallel training with gradient synchronization, autograd hooks, buckets, and asynchronous communication;
 - derive and implement the memory/communication progression from DDP to ZeRO-1, ZeRO-2, and ZeRO-3;
 - explain why ZeRO-1 shards optimizer state, ZeRO-2 additionally shards gradients, and ZeRO-3 additionally shards parameters;
@@ -41,7 +41,7 @@ With CPU + Gloo you can complete the majority of the conceptual/core exercises:
 
 - process groups and SPMD;
 - send/recv and collective semantics;
-- ring all-reduce;
+- ring and tree all-reduce;
 - MiniDDP correctness;
 - bucket packing and metadata;
 - ZeRO-1/2/3 correctness;
@@ -104,7 +104,7 @@ The dependency spine is:
 ```text
 process groups
     ↓
-collectives ─────────────→ optional ring-all-reduce lab
+collectives ─────────────→ optional ring/tree all-reduce labs
     ↓
 MiniDDP
     ↓
@@ -126,7 +126,7 @@ NCCL + failure/debugging
 final equivalence + memory/communication comparison
 ```
 
-The ring lab is intentionally a side branch: it teaches how a collective can be built from point-to-point communication, but the main framework uses `torch.distributed` collectives like real PyTorch/DeepSpeed implementations do.
+The ring and tree labs are intentionally side branches: they compare two ways to build a collective from point-to-point communication, but the main framework uses `torch.distributed` collectives like real PyTorch/DeepSpeed implementations do.
 
 ## Install
 

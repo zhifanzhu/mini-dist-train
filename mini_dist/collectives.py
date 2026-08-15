@@ -19,6 +19,20 @@ def reduce_scatter_sum(flat_tensor: torch.Tensor, group=None) -> torch.Tensor:
     todo("reduce_scatter_sum")
 
 
+def tree_all_reduce_sum(tensor: torch.Tensor, group=None) -> torch.Tensor:
+    """Optional exercise: all-reduce SUM using a balanced P2P tree.
+
+    Implement a tree-shaped reduction followed by tree-shaped dissemination.
+    Do not call dist.all_reduce/reduce_scatter/all_gather/broadcast inside this
+    function. Blocking, nonblocking, and batched P2P APIs are all valid.
+
+    Tests intentionally check behavior rather than intercepting a particular
+    P2P API. After they pass, ask a code-review agent to verify that both phases
+    use a balanced tree rather than a linear chain or a hidden collective.
+    """
+    todo("tree_all_reduce_sum")
+
+
 def ring_all_reduce_sum(tensor: torch.Tensor, group=None) -> torch.Tensor:
     """Optional exercise: all-reduce SUM using point-to-point communication only.
 

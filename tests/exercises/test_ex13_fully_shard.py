@@ -18,6 +18,7 @@ class TinyModel(nn.Module):
 def _worker(rank, world_size):
     torch.manual_seed(0)
     model = TinyModel()
+    head_parameter_ids = {id(model.head.weight), id(model.head.bias)}
     assert fully_shard(model.block1) is model.block1
     assert fully_shard(model.block2) is model.block2
     assert fully_shard(model) is model
@@ -29,7 +30,7 @@ def _worker(rank, world_size):
     assert owned[0].isdisjoint(owned[2])
     assert owned[1].isdisjoint(owned[2])
     # Root should own the head parameters, but not child-owned block parameters.
-    assert owned[2] == {id(model.head.weight), id(model.head.bias)}
+    assert owned[2] == head_parameter_ids
 
     opt = torch.optim.SGD(model.parameters(), lr=0.01)  # optimizer after fully_shard
     x = torch.ones(2, 4) * (rank + 1)

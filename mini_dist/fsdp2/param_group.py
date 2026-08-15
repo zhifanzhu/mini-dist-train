@@ -5,7 +5,12 @@ from mini_dist._todo import todo
 
 
 class FSDPParamGroup:
-    """Parameters communicated together while retaining per-parameter identity."""
+    """Parameters communicated together while retaining per-parameter identity.
+
+    Tests intentionally accept different collective APIs. After they pass, ask
+    a code-review agent to verify that communication is grouped rather than
+    launched separately for every parameter.
+    """
 
     def __init__(self, params: Sequence[FSDPParam], *, group=None):
         self.params = list(params)

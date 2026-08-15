@@ -6,6 +6,12 @@ They are also the acceptance specification for the exercises. Required
 behavior belongs in public tests; a learner whose chapter and regression tests
 pass should not need to satisfy additional agent-invented stress cases.
 
+Tests should not monkeypatch or count one specific low-level API when equivalent
+blocking, nonblocking, batched, or backend-specific implementations satisfy the
+same exercise contract. A central algorithmic property that cannot be observed
+without such coupling may be marked narrowly as agent-reviewed in the exercise
+brief and source scaffold. Unimportant unverifiable details are simply omitted.
+
 ## Two categories
 
 ### Smoke tests

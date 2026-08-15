@@ -11,10 +11,11 @@ def _worker(rank, world_size):
     handle = FlatParameterHandle(module)
 
     infos = handle.infos
+    assert {info.name for info in infos} == set(original)
     assert sum(i.numel for i in infos) == sum(p.numel() for p in original.values())
     expected_offset = 0
-    for info, (name, ref) in zip(infos, original.items()):
-        assert info.name == name
+    for info in sorted(infos, key=lambda item: item.offset):
+        ref = original[info.name]
         assert info.shape == ref.shape
         assert info.numel == ref.numel()
         assert info.offset == expected_offset
@@ -31,9 +32,10 @@ def _worker(rank, world_size):
         assert views[name].shape == ref.shape
         torch.testing.assert_close(views[name], ref)
 
-    first = views[infos[0].name].reshape(-1)
+    first_info = min(infos, key=lambda item: item.offset)
+    first = views[first_info.name].reshape(-1)
     with torch.no_grad():
-        full_flat[infos[0].offset] = 123
+        full_flat[first_info.offset] = 123
     assert first[0].item() == 123  # reconstructed parameters must be views
 
 

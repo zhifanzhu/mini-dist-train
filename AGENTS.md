@@ -29,6 +29,11 @@ implementation as accepted. Do not add ad hoc stress tests, reject the solution
 for an untested corner case, or require extra validation based only on source
 inspection unless the user explicitly asks for broader review or test work.
 
+The only exception is an exercise that explicitly marks one central objective
+as **agent-reviewed** because testing it would constrain valid implementation
+choices. In that case, inspect only the named objective after tests pass; do not
+expand the review into unrelated style or corner-case requirements.
+
 If an important requirement is missing from the suite, report it as a test-suite
 gap rather than a learner-code failure. Add it to the required suite only when
 the user asks to change the tests. Expensive, backend-specific, or substantially

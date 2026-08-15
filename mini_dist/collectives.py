@@ -62,6 +62,10 @@ def ring_all_reduce_sum(tensor: torch.Tensor, group=None) -> torch.Tensor:
 
     You may assume a 1-D tensor whose length is divisible by world_size.
     Do not call dist.all_reduce/reduce_scatter/all_gather inside this function.
+
+    Blocking, nonblocking, and batched P2P APIs are all valid. Tests do not
+    intercept a particular P2P API; after they pass, ask a code-review agent to
+    verify the chunked reduce-scatter and all-gather structure.
     """
     # send() must be answered by recv() first, otherwise deadlock.
     if group is None:

@@ -1,0 +1,127 @@
+knowledge_points:
+  - id: spmd.same_program_rank_local_state
+    chapter: ex00
+    test: tests/exercises/test_ex00_process_groups.py
+  - id: process_group.rank_world_size
+    chapter: ex00
+    test: tests/exercises/test_ex00_process_groups.py
+  - id: collective.all_reduce_mean
+    chapter: ex01
+    test: tests/exercises/test_ex01_collectives.py
+  - id: collective.all_gather_fixed
+    chapter: ex01
+    test: tests/exercises/test_ex01_collectives.py
+  - id: collective.reduce_scatter_sum
+    chapter: ex01
+    test: tests/exercises/test_ex01_collectives.py
+  - id: collective.ordering_contract
+    chapter: ex15
+    test: fault_injection/mismatched_collective.py
+  - id: ring.reduce_scatter_phase
+    chapter: ex02
+    test: tests/exercises/test_ex02_ring_allreduce.py
+  - id: ring.all_gather_phase
+    chapter: ex02
+    test: tests/exercises/test_ex02_ring_allreduce.py
+  - id: ddp.replicated_parameters
+    chapter: ex03
+    test: tests/exercises/test_ex03_ddp.py
+  - id: ddp.mean_gradient
+    chapter: ex03
+    test: tests/exercises/test_ex03_ddp.py
+  - id: ddp.autograd_hooks
+    chapter: ex04
+    test: tests/exercises/test_ex04_buckets.py
+  - id: ddp.bucket_pack_unpack
+    chapter: ex04
+    test: tests/exercises/test_ex04_buckets.py
+  - id: ddp.bucket_async_readiness
+    chapter: ex04
+    test: tests/exercises/test_ex04_buckets.py
+  - id: zero1.optimizer_state_sharding
+    chapter: ex05
+    test: tests/exercises/test_ex05_zero1.py
+  - id: zero1.replicated_parameters_after_step
+    chapter: ex05
+    test: tests/exercises/test_ex05_zero1.py
+  - id: zero2.gradient_sharding
+    chapter: ex06
+    test: tests/exercises/test_ex06_zero2.py
+  - id: zero2.optimizer_gradient_ownership_alignment
+    chapter: ex06
+    test: tests/exercises/test_ex06_zero2.py
+  - id: zero3.parameter_sharding
+    chapter: ex07
+    test: tests/exercises/test_ex07_zero3.py
+  - id: zero3.padding_metadata
+    chapter: ex07
+    test: tests/exercises/test_partition_edge_cases.py
+  - id: zero3.all_gather_exact_reconstruction
+    chapter: ex07
+    test: tests/exercises/test_ex07_zero3.py
+  - id: engine.deepspeed_style_backward_step
+    chapter: ex08
+    test: tests/exercises/test_ex08_engine.py
+  - id: fsdp1.permanent_flat_representation
+    chapter: ex09
+    test: tests/exercises/test_ex09_fsdp1_flat_param.py
+  - id: fsdp1.offset_shape_metadata
+    chapter: ex09
+    test: tests/exercises/test_ex09_fsdp1_flat_param.py
+  - id: fsdp1.flatten_pad_shard_gather_unpad_view
+    chapter: ex09
+    test: tests/exercises/test_ex09_fsdp1_flat_param.py
+  - id: fsdp1.hook_lifecycle
+    chapter: ex10
+    test: tests/exercises/test_ex10_fsdp1.py
+  - id: fsdp2.per_parameter_identity
+    chapter: ex11
+    test: tests/exercises/test_ex11_fsdp2_param.py
+  - id: fsdp2.sharded_unsharded_state_machine
+    chapter: ex11
+    test: tests/exercises/test_ex11_fsdp2_param.py
+  - id: fsdp2.temporary_group_packing
+    chapter: ex12
+    test: tests/exercises/test_ex12_fsdp2_param_group.py
+  - id: fsdp2.grouped_reduce_scatter
+    chapter: ex12
+    test: tests/exercises/test_ex12_fsdp2_param_group.py
+  - id: fsdp2.bottom_up_ownership
+    chapter: ex13
+    test: tests/exercises/test_ex13_fully_shard.py
+  - id: fsdp2.normal_pytorch_training_surface
+    chapter: ex13
+    test: tests/exercises/test_ex13_fully_shard.py
+  - id: cuda.async_collective_work
+    chapter: ex14
+    test: tests/gpu/test_overlap.py
+  - id: cuda.stream_dependency
+    chapter: ex14
+    test: tests/gpu/test_overlap.py
+  - id: fsdp.prefetch
+    chapter: ex14
+    test: tests/gpu/test_overlap.py
+  - id: nccl.process_group_boundary
+    chapter: ex15
+    test: tests/gpu/test_nccl_contracts.py
+  - id: failure.rank_exit
+    chapter: ex15
+    test: fault_injection/rank_exit.py
+  - id: failure.skipped_collective
+    chapter: ex15
+    test: fault_injection/skipped_collective.py
+  - id: failure.mismatched_collective
+    chapter: ex15
+    test: fault_injection/mismatched_collective.py
+  - id: failure.straggler
+    chapter: ex15
+    test: fault_injection/straggler.py
+  - id: failure.pre_collective_exception
+    chapter: ex15
+    test: fault_injection/pre_collective_exception.py
+  - id: integration.numerical_equivalence
+    chapter: ex16
+    test: tests/milestones/test_equivalence.py
+  - id: integration.memory_ownership_comparison
+    chapter: ex16
+    test: tests/milestones/test_equivalence.py

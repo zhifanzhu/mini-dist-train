@@ -1,0 +1,91 @@
+course: mini-dist-train
+philosophy: cumulative
+chapters:
+  - id: ex00
+    name: process-groups
+    depends_on: []
+    test: tests/exercises/test_ex00_process_groups.py
+    core: true
+  - id: ex01
+    name: collectives
+    depends_on: [ex00]
+    test: tests/exercises/test_ex01_collectives.py
+    core: true
+  - id: ex02
+    name: ring-all-reduce
+    depends_on: [ex01]
+    test: tests/exercises/test_ex02_ring_allreduce.py
+    core: false
+    note: optional side branch; main framework delegates collectives to torch.distributed
+  - id: ex03
+    name: mini-ddp
+    depends_on: [ex01]
+    test: tests/exercises/test_ex03_ddp.py
+    core: true
+  - id: ex04
+    name: buckets-and-hooks
+    depends_on: [ex03]
+    test: tests/exercises/test_ex04_buckets.py
+    core: true
+  - id: ex05
+    name: zero-1
+    depends_on: [ex03]
+    test: tests/exercises/test_ex05_zero1.py
+    core: true
+  - id: ex06
+    name: zero-2
+    depends_on: [ex05, ex01]
+    test: tests/exercises/test_ex06_zero2.py
+    core: true
+  - id: ex07
+    name: zero-3
+    depends_on: [ex06]
+    test: tests/exercises/test_ex07_zero3.py
+    core: true
+  - id: ex08
+    name: deepspeed-style-engine
+    depends_on: [ex05, ex06, ex07]
+    test: tests/exercises/test_ex08_engine.py
+    core: true
+  - id: ex09
+    name: fsdp1-flat-parameter
+    depends_on: [ex07]
+    test: tests/exercises/test_ex09_fsdp1_flat_param.py
+    core: true
+  - id: ex10
+    name: fsdp1-hooks
+    depends_on: [ex09, ex04]
+    test: tests/exercises/test_ex10_fsdp1.py
+    core: true
+  - id: ex11
+    name: fsdp2-param
+    depends_on: [ex07]
+    test: tests/exercises/test_ex11_fsdp2_param.py
+    core: true
+  - id: ex12
+    name: fsdp2-param-group
+    depends_on: [ex11, ex04]
+    test: tests/exercises/test_ex12_fsdp2_param_group.py
+    core: true
+  - id: ex13
+    name: fully-shard-api
+    depends_on: [ex12]
+    test: tests/exercises/test_ex13_fully_shard.py
+    core: true
+  - id: ex14
+    name: overlap-streams-prefetch
+    depends_on: [ex04, ex12]
+    test: tests/gpu/test_overlap.py
+    core: false
+    hardware: 2_cuda_gpus_recommended
+  - id: ex15
+    name: nccl-and-failures
+    depends_on: [ex01, ex13]
+    test: tests/gpu/test_nccl_contracts.py
+    core: false
+    hardware: 2_cuda_gpus_recommended
+  - id: ex16
+    name: final-equivalence
+    depends_on: [ex08, ex10, ex13]
+    test: tests/milestones/test_equivalence.py
+    core: true

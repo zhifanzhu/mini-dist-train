@@ -1,0 +1,25 @@
+# Exercise map
+
+Each chapter extends the same `mini_dist` package. Do not copy your previous implementation into a new folder; later chapters import it directly.
+
+| ID | Topic | Main dependency | What changes |
+|---|---|---|---|
+| ex00 | process groups | — | rank/world-size/process-group state |
+| ex01 | collectives | ex00 | sum/mean, gather, reduce-scatter contracts |
+| ex02 | ring all-reduce | ex01 | build one collective from send/recv |
+| ex03 | MiniDDP | ex01 | replicated params + synchronized grads |
+| ex04 | buckets/hooks | ex03 | readiness, packing, async launches |
+| ex05 | ZeRO-1 | ex03 | shard optimizer-state ownership |
+| ex06 | ZeRO-2 | ex05 | additionally shard reduced gradients |
+| ex07 | ZeRO-3 | ex06 | additionally shard parameters |
+| ex08 | DeepSpeed-style engine | ex05–07 | engine owns backward/step workflow |
+| ex09 | FSDP1 flat param | ex07 | permanent flat representation + views |
+| ex10 | FSDP1 hooks | ex09 | automatic unshard/reshard lifecycle |
+| ex11 | FSDP2 param | ex07 | per-parameter sharded identity |
+| ex12 | FSDP2 param group | ex11 | temp packing + grouped collectives |
+| ex13 | fully_shard API | ex12 | bottom-up ownership + hooks |
+| ex14 | overlap/streams | ex04/ex12 | async comm + CUDA streams/prefetch |
+| ex15 | NCCL/failures | ex01/ex13 | backend contracts and failure propagation |
+| ex16 | final equivalence | all core | compare numerics/memory/communication |
+
+Every chapter has a short markdown brief in this directory.

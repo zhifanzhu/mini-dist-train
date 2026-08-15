@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mini-dist-train"
+version = "0.1.0"
+description = "Educational cumulative distributed-training framework exercises"
+requires-python = ">=3.10"
+dependencies = ["torch>=2.4"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pyyaml>=6"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra"
+markers = [
+  "gpu: requires CUDA",
+  "nccl: requires at least two CUDA GPUs and NCCL",
+  "slow: longer-running integration test",
+]
+
+[tool.setuptools.packages.find]
+include = ["mini_dist*"]

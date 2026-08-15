@@ -9,4 +9,5 @@ def _worker(rank, world_size):
 
 
 def test_context_reads_default_process_group():
-    run_gloo(2, _worker)
+    # Three ranks catches implementations that accidentally assume a binary job.
+    run_gloo(3, _worker)

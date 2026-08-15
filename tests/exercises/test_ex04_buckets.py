@@ -1,4 +1,6 @@
+import copy
 import torch
+import torch.distributed as dist
 import torch.nn as nn
 from mini_dist.buckets import BucketLayout
 from mini_dist.ddp import MiniDDP
@@ -19,23 +21,34 @@ def test_bucket_pack_unpack_preserves_shapes_and_aliases():
     assert views[0].reshape(-1)[0].item() == 99  # views, not copies
 
 
-def _hook_worker(rank, world_size):
+def _hook_worker(rank, world_size, bucket_cap_numel, expect_multiple_buckets):
     torch.manual_seed(0)
-    model = MiniDDP(nn.Sequential(nn.Linear(4, 4), nn.ReLU(), nn.Linear(4, 1)))
-    model.enable_bucketed_hooks(bucket_cap_numel=10_000)  # all grads should fit one bucket
+    base = nn.Sequential(nn.Linear(4, 4), nn.ReLU(), nn.Linear(4, 1))
+    reference = copy.deepcopy(base)
+    model = MiniDDP(base)
+    model.enable_bucketed_hooks(bucket_cap_numel=bucket_cap_numel)
     x = torch.arange(4, dtype=torch.float32).reshape(1, 4) + rank
+
+    reference(x).sum().backward()
+    for p in reference.parameters():
+        dist.all_reduce(p.grad)
+        p.grad.div_(world_size)
+
     model(x).sum().backward()
 
-    # Hooks must have synchronized gradients without explicit sync_gradients().
-    for p in model.parameters():
-        if p.grad is None:
-            continue
-        gathered = [torch.empty_like(p.grad) for _ in range(world_size)]
-        torch.distributed.all_gather(gathered, p.grad)
-        for other in gathered[1:]:
-            torch.testing.assert_close(other, gathered[0])
-    assert model.num_bucket_allreduces == 1
+    # Hooks must produce the reference mean gradients without an explicit sync.
+    for got, expected in zip(model.parameters(), reference.parameters()):
+        torch.testing.assert_close(got.grad, expected.grad)
+
+    if expect_multiple_buckets:
+        assert model.num_bucket_allreduces > 1
+    else:
+        assert model.num_bucket_allreduces == 1
 
 
 def test_bucketed_autograd_hooks_launch_when_bucket_ready():
-    run_gloo(2, _hook_worker)
+    run_gloo(2, _hook_worker, 10_000, False)
+
+
+def test_small_bucket_cap_launches_multiple_correct_reductions():
+    run_gloo(2, _hook_worker, 20, True)

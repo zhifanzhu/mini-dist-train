@@ -55,7 +55,7 @@ knowledge_points:
     test: tests/exercises/test_ex07_zero3.py
   - id: zero3.padding_metadata
     chapter: ex07
-    test: tests/exercises/test_partition_edge_cases.py
+    test: tests/exercises/test_ex07_zero3.py
   - id: zero3.all_gather_exact_reconstruction
     chapter: ex07
     test: tests/exercises/test_ex07_zero3.py

@@ -2,6 +2,10 @@
 
 The tests are intentionally cumulative and invariant-oriented.
 
+They are also the acceptance specification for the exercises. Required
+behavior belongs in public tests; a learner whose chapter and regression tests
+pass should not need to satisfy additional agent-invented stress cases.
+
 ## Two categories
 
 ### Smoke tests
@@ -41,11 +45,18 @@ Tests should prefer meaningful distributed invariants over black-box success:
 
 A hanging distributed job is often a *semantic failure*, not a pytest bug. For failure labs, use short timeouts and reason about the ordered collective stream per rank.
 
-## Edge cases that must not be removed
+## Required representative cases
+
+The suite keeps a compact set of cases that exercise the declared contracts:
 
 - `numel < world_size`;
 - `numel % world_size != 0`;
 - parameters of very different sizes in one communication group;
 - world size 1 where practical;
-- `None`/unused gradients in advanced exercises;
+- a non-default process group at the primitive communication layer;
 - different minibatches per rank while initial parameters remain identical.
+
+Rare backend-specific cases and features that require substantial extra
+machinery, such as production-grade unused-parameter discovery, belong in an
+optional extension or documented limitation unless a chapter explicitly adds
+them to its tests.

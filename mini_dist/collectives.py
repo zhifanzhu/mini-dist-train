@@ -68,8 +68,6 @@ def ring_all_reduce_sum(tensor: torch.Tensor, group=None) -> torch.Tensor:
     verify the chunked reduce-scatter and all-gather structure.
     """
     # send() must be answered by recv() first, otherwise deadlock.
-    if group is None:
-        group = dist.GroupMember.WORLD
     ws = dist.get_world_size(group)
     rank = dist.get_rank(group)
     if tensor.shape[0] % ws != 0:
@@ -79,6 +77,7 @@ def ring_all_reduce_sum(tensor: torch.Tensor, group=None) -> torch.Tensor:
     buffer = torch.zeros_like(chunks[0])
 
     """ v3, use isend/irecv to avoid odd number tricky handling. """
+    # Tbh I have no idea how I came up with the rs -> rr -> rr.wait() -> rs.wait() trick
     #  ranks: A B C D 
     #         d a b c
     #         c d a b
@@ -86,12 +85,12 @@ def ring_all_reduce_sum(tensor: torch.Tensor, group=None) -> torch.Tensor:
     for i in range(ws-1):
         send_chunk_ind = (rank + ws - 1 - i) % ws
         dst_rank = (rank + 1) % ws
-        dst_rank = dist.get_global_rank(group, dst_rank)
         write_chunk_ind = (rank + ws - 2 - i) % ws
         src_rank = (rank + ws - 1) % ws
-        src_rank = dist.get_global_rank(group, src_rank)
-        rs = dist.isend(chunks[send_chunk_ind], dst_rank, group)
-        rr = dist.irecv(buffer, src_rank, group)
+        rs = dist.isend(
+            chunks[send_chunk_ind], group=group, group_dst=dst_rank)
+        rr = dist.irecv(
+            buffer, group=group, group_src=src_rank)
         rr.wait()
         rs.wait()
         chunks[write_chunk_ind] += buffer
@@ -101,8 +100,10 @@ def ring_all_reduce_sum(tensor: torch.Tensor, group=None) -> torch.Tensor:
         dst_rank = (rank + 1) % ws
         write_chunk_ind = (rank + ws- 1 - i) % ws
         src_rank = (rank + ws - 1) % ws
-        rs = dist.isend(chunks[send_chunk_ind], dst_rank, group)
-        rr = dist.irecv(chunks[write_chunk_ind], src_rank, group)
+        rs = dist.isend(
+            chunks[send_chunk_ind], group=group, group_dst=dst_rank)
+        rr = dist.irecv(
+            chunks[write_chunk_ind], group=group, group_src=src_rank)
         rr.wait()
         rs.wait()
     

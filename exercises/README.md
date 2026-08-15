@@ -7,6 +7,7 @@ Each chapter extends the same `mini_dist` package. Do not copy your previous imp
 | ex00 | process groups | — | rank/world-size/process-group state |
 | ex01 | collectives | ex00 | sum/mean, gather, reduce-scatter contracts |
 | ex02 | ring all-reduce | ex01 | build one collective from send/recv |
+| ex02b | tree all-reduce | ex01 | build a balanced-tree collective from P2P |
 | ex03 | MiniDDP | ex01 | replicated params + synchronized grads |
 | ex04 | buckets/hooks | ex03 | readiness, packing, async launches |
 | ex05 | ZeRO-1 | ex03 | shard optimizer-state ownership |

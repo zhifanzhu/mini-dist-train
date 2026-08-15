@@ -23,6 +23,15 @@ knowledge_points:
   - id: ring.all_gather_phase
     chapter: ex02
     test: tests/exercises/test_ex02_ring_allreduce.py
+  - id: tree.reduce_phase
+    chapter: ex02b
+    test: tests/exercises/test_ex02b_tree_allreduce.py
+  - id: tree.dissemination_phase
+    chapter: ex02b
+    test: tests/exercises/test_ex02b_tree_allreduce.py
+  - id: tree.non_power_of_two_group
+    chapter: ex02b
+    test: tests/exercises/test_ex02b_tree_allreduce.py
   - id: ddp.replicated_parameters
     chapter: ex03
     test: tests/exercises/test_ex03_ddp.py

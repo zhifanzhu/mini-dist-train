@@ -17,6 +17,12 @@ chapters:
     test: tests/exercises/test_ex02_ring_allreduce.py
     core: false
     note: optional side branch; main framework delegates collectives to torch.distributed
+  - id: ex02b
+    name: tree-all-reduce
+    depends_on: [ex01]
+    test: tests/exercises/test_ex02b_tree_allreduce.py
+    core: false
+    note: optional side branch; compare tree depth with ring communication
   - id: ex03
     name: mini-ddp
     depends_on: [ex01]

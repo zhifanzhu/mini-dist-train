@@ -10,7 +10,12 @@ def _worker(rank, world_size):
     p = FSDPParam.from_parameter("weight", full)
     assert p.source_param_id == source_id
     assert p.state is ParamState.SHARDED
+    assert p.original_shape == reference.shape
     assert p.partition.original_numel == 13
+    assert p.partition.padded_numel == 16
+    padded = torch.zeros(p.partition.padded_numel)
+    padded[: reference.numel()] = reference.reshape(-1)
+    torch.testing.assert_close(p.local_shard, padded.chunk(world_size)[rank])
     gathered = p.unshard()
     assert p.state is ParamState.UNSHARDED
     torch.testing.assert_close(gathered, reference)

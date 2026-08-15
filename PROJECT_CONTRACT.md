@@ -12,3 +12,5 @@ This file records the design decisions for this educational repository so a codi
 8. **Tests assert invariants, not only final output.** Ownership, padding metadata, state transitions, collective semantics, and cross-rank equality should be observable/testable.
 9. **Normal final APIs should look boring.** FSDP-style usage should converge toward an ordinary PyTorch training loop; DeepSpeed-style usage should expose an engine abstraction.
 10. **No bundled solutions.** Codex/test tooling should run and diagnose, but not solve TODOs unless the learner explicitly asks.
+11. **Tests are the acceptance boundary.** Every required correctness property belongs in the public test suite. Chapter tests use a compact representative matrix, with subgroup behavior tested at the primitive communication layer, and a passing implementation is accepted without agent-invented stress tests.
+12. **Keep the weekend-project scope.** Do not turn rare, expensive, backend-specific, or substantially complex corners into mandatory requirements. Put them in optional exercises or document them as limitations instead.

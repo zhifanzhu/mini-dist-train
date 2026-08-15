@@ -21,6 +21,12 @@ def _worker(rank, world_size):
     opt = torch.optim.SGD(model.parameters(), lr=0.1)
     opt.step()
 
+    for p in model.parameters():
+        gathered = [torch.empty_like(p) for _ in range(world_size)]
+        torch.distributed.all_gather(gathered, p)
+        for other in gathered[1:]:
+            torch.testing.assert_close(other, gathered[0])
+
 
 def test_ddp_synchronizes_mean_gradient():
-    run_gloo(2, _worker)
+    run_gloo(3, _worker)

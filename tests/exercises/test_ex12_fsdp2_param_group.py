@@ -19,6 +19,11 @@ def _worker(rank, world_size):
     grads = [torch.ones_like(x) * (rank + 1) for x in fulls]
     local_grad_shards = group.reduce_scatter_grads(grads)
     assert len(local_grad_shards) == len(params)
+    mean_value = sum(r + 1 for r in range(world_size)) / world_size
+    for local_grad, param in zip(local_grad_shards, params):
+        expected = torch.zeros(param.partition.padded_numel)
+        expected[: param.partition.original_numel] = mean_value
+        torch.testing.assert_close(local_grad, expected.chunk(world_size)[rank])
     group.reshard()
     assert all(p.state is ParamState.SHARDED for p in params)
 

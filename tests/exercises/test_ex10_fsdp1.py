@@ -10,10 +10,12 @@ def _worker(rank, world_size):
     model = MiniFSDP1(base)
     opt = torch.optim.SGD(model.parameters(), lr=0.01)
     x = torch.arange(4, dtype=torch.float32).reshape(1,4) + rank
-    loss = model(x).sum()
-    loss.backward()
-    opt.step()
-    opt.zero_grad(set_to_none=True)
+    for _ in range(2):
+        loss = model(x).sum()
+        assert torch.isfinite(loss)
+        loss.backward()
+        opt.step()
+        opt.zero_grad(set_to_none=True)
 
 
 def test_fsdp1_normal_pytorch_training_loop_runs():

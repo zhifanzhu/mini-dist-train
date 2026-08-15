@@ -9,12 +9,30 @@ This repository is an educational distributed-training lab.
 Default behavior should be:
 
 1. run the requested test(s);
-2. inspect failures, hangs, logs, and rank-specific behavior;
+2. if a test fails or hangs, inspect its logs and rank-specific behavior;
 3. identify the violated invariant;
 4. give a minimal hint;
 5. let the user implement the fix.
 
 When the user asks for a stronger hint, reveal one additional conceptual step at a time.
+
+## Test suite is the acceptance specification
+
+Required exercise behavior must be encoded in the repository tests. Tests aim
+to cover the declared interfaces generally with a small representative matrix.
+The primitive communication layer covers non-default process groups; higher
+layers rely on those tested primitives unless subgroup behavior is itself the
+chapter's subject.
+
+When the requested chapter and its regression tests pass, treat the learner's
+implementation as accepted. Do not add ad hoc stress tests, reject the solution
+for an untested corner case, or require extra validation based only on source
+inspection unless the user explicitly asks for broader review or test work.
+
+If an important requirement is missing from the suite, report it as a test-suite
+gap rather than a learner-code failure. Add it to the required suite only when
+the user asks to change the tests. Expensive, backend-specific, or substantially
+more complex cases belong in an optional exercise or documented limitation.
 
 ## Allowed by default
 
@@ -34,7 +52,7 @@ When the user asks for a stronger hint, reveal one additional conceptual step at
 - producing a complete solution because a test failed;
 - silently changing tests to make user code pass;
 - weakening an invariant;
-- skipping edge cases such as non-divisible shard sizes.
+- skipping required edge cases encoded in the tests, such as non-divisible shard sizes.
 
 ## Teaching style
 

@@ -1,3 +1,4 @@
+import copy
 import torch
 import torch.nn as nn
 from mini_dist.engine import MiniDeepSpeedEngine
@@ -7,12 +8,22 @@ from tests._dist_test_utils import run_gloo
 def _worker(rank, world_size, zero_stage):
     torch.manual_seed(1)
     module = nn.Linear(4, 1)
+    reference = copy.deepcopy(module)
     engine = MiniDeepSpeedEngine(module, torch.optim.SGD, zero_stage=zero_stage, lr=0.1)
     x = torch.tensor([[float(rank), 1.0, 2.0, -1.0]])
+
+    reference(x).sum().backward()
+    for p in reference.parameters():
+        torch.distributed.all_reduce(p.grad)
+        p.grad.div_(world_size)
+    torch.optim.SGD(reference.parameters(), lr=0.1).step()
+
     loss = engine(x).sum()
     engine.backward(loss)
     engine.step()
     assert engine.module is module
+    for got, expected in zip(engine.module.parameters(), reference.parameters()):
+        torch.testing.assert_close(got, expected)
 
 
 def _run_stage1(rank, world_size):

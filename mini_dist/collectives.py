@@ -6,15 +6,15 @@ from ._todo import todo
 
 def all_reduce_mean(tensor: torch.Tensor, group=None) -> torch.Tensor:
     """In-place mean all-reduce; return `tensor` for convenience."""
-    ws = dist.get_world_size()
-    tensor = tensor / ws
+    ws = dist.get_world_size(group)
+    tensor.div_(ws)
     dist.all_reduce(tensor, dist.ReduceOp.SUM, group=group)
     return tensor
 
 
 def all_gather_fixed(tensor: torch.Tensor, group=None) -> torch.Tensor:
     """Gather equal-sized tensors and concatenate along dim 0."""
-    ws = dist.get_world_size()
+    ws = dist.get_world_size(group)
     dd = {'device': tensor.device, 'dtype': tensor.dtype}
     shape = tensor.shape
     # rank = dist.get_rank()
@@ -42,8 +42,9 @@ def reduce_scatter_sum(flat_tensor: torch.Tensor, group=None) -> torch.Tensor:
         ...
         rank k-1 = [ a_k-1 + b_k-1 + ... + t_k-1 ]
     """
-    ws = dist.get_world_size()
-    splits = list(flat_tensor.chunk(ws))
+    ws = dist.get_world_size(group)
+    split_size = flat_tensor.shape[0] // ws
+    splits = list(flat_tensor.split(split_size))
     tensor_out = torch.zeros_like(splits[0])
     dist.reduce_scatter(tensor_out, splits, op=dist.ReduceOp.SUM, group=group)
     # rank = dist.get_rank()
@@ -58,4 +59,74 @@ def ring_all_reduce_sum(tensor: torch.Tensor, group=None) -> torch.Tensor:
     You may assume a 1-D tensor whose length is divisible by world_size.
     Do not call dist.all_reduce/reduce_scatter/all_gather inside this function.
     """
-    todo("ring_all_reduce_sum")
+    # send() must be answered by recv(), otherwise deadlock.
+    ws = dist.get_world_size(group)
+    rank = dist.get_rank(group)
+    chunks = list(tensor.chunk(ws))
+
+    buffer = torch.zeros_like(chunks[0])
+
+    #  ranks: A B C D 
+    #         d a b c
+    #         c d a b
+    #         b c d a
+    for i in range(ws-1):
+        send_chunk_ind = (rank + ws - 1 - i) % ws
+        dst_rank = (rank + 1) % ws
+        write_chunk_ind = (rank + ws - 2 - i) % ws
+        src_rank = (rank + ws - 1) % ws
+        # print(f"{rank=}, {send_chunk_ind=}->{dst_rank=}, {src_rank=}->{write_chunk_ind=}.")
+        if rank % 2 == 0:
+            dist.send(chunks[send_chunk_ind], dst_rank, group)
+            dist.recv(buffer, src_rank, group)
+            chunks[write_chunk_ind] += buffer
+        else:
+            dist.recv(buffer, src_rank, group)
+            chunks[write_chunk_ind] += buffer
+            dist.send(chunks[send_chunk_ind], dst_rank, group)
+    # After above, A holds complete a, B hold complete b, etc
+
+    # print(f"{rank=}, {chunks=}")
+    
+    #  ranks: A B C D 
+    #         a b c d
+    #         d a b c
+    #         c d a b
+    for i in range(ws-1):
+        send_chunk_ind = (rank + ws - i) % ws
+        dst_rank = (rank + 1) % ws
+        write_chunk_ind = (rank + ws- 1 - i) % ws
+        src_rank = (rank + ws - 1) % ws
+        # print(f"Share {rank=}, {send_chunk_ind=}->{dst_rank=}, {src_rank=}->{write_chunk_ind=}.")
+        if rank % 2 == 0:
+            dist.send(chunks[send_chunk_ind], dst_rank, group)
+            dist.recv(chunks[write_chunk_ind], src_rank, group)
+        else:
+            dist.recv(chunks[write_chunk_ind], src_rank, group)
+            dist.send(chunks[send_chunk_ind], dst_rank, group)
+    
+    tensor.set_(torch.cat(chunks))
+    return tensor
+
+    """ v1
+    out = torch.zeros_like(tensor)
+    for i in range(ws):
+        if rank == i:
+            dist.send(tensor, dst=(i+1)%ws, group=group)
+        if rank == i + 1:
+            dist.recv(out, src=i, group=group)
+            tensor = tensor + out
+
+    if rank == 0:
+        dist.recv(out, src=ws-1, group=group)
+
+    for i in range(ws):
+        if rank == i:
+            dist.send(out, dst=(i+1)%ws, group=group)
+        if rank == i + 1:
+            dist.recv(out, src=i, group=group)
+
+    if rank == 0:
+        dist.recv(out, src=ws-1, group=group)
+    """
+    return out

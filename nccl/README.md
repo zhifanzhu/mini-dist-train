@@ -12,4 +12,11 @@ Goals:
 
 Requirements: CUDA toolkit, NCCL development headers/library, and at least 2 NVIDIA GPUs.
 
-`direct_allreduce.cu` is a compileable scaffold with TODO markers, not a solution.
+`direct_allreduce.cu` contains a complete single-process, multi-GPU realization using `ncclCommInitAll`. This avoids adding MPI solely for communicator-ID exchange while exercising the same communicator, CUDA-stream enqueue, completion, and result contracts. Extending it to one process per GPU replaces `ncclCommInitAll` with an external `ncclUniqueId` exchange and `ncclCommInitRank`.
+
+One example build command is:
+
+```bash
+nvcc -O2 direct_allreduce.cu -lnccl -o direct_allreduce
+./direct_allreduce 2
+```

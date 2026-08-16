@@ -1,7 +1,4 @@
-"""Educational distributed-training framework.
-
-The package intentionally contains TODOs. See exercises/ and tests/exercises/.
-"""
+"""Educational distributed-training framework solution implementation."""
 
 from .distributed import DistributedContext
 

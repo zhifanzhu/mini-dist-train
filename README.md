@@ -225,6 +225,8 @@ scripts/
     run_gpu_nccl.sh
 ```
 
-## No solutions are included
+## Solution branch
 
-The repository provides interfaces, TODOs, tests, invariants, debugging utilities, and milestone programs. It intentionally does not include reference implementations of the exercises.
+The normal `main` and `main-testcases` branches provide interfaces, tests, invariants, debugging utilities, and milestone programs without reference implementations. The `main-codex-solutions` branch contains complete exercise implementations for comparison after attempting the labs.
+
+The CUDA/NCCL implementations are included, but they still require the hardware and toolchains described above to execute. Lack of those dependencies is an environment limitation, not an infeasible exercise.

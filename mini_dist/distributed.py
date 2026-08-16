@@ -11,7 +11,8 @@ class DistributedContext:
     @classmethod
     def from_default_group(cls) -> "DistributedContext":
         """Return rank/world-size from the initialized default process group."""
-        todo("DistributedContext.from_default_group")
+        require_initialized()
+        return cls(rank=dist.get_rank(), world_size=dist.get_world_size())
 
 
 def require_initialized() -> None:

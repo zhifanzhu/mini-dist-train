@@ -19,8 +19,22 @@ def partition_1d(numel: int, rank: int, world_size: int) -> Partition:
 
     `start:end` indexes the padded flat buffer.
     """
-    todo("partition_1d")
+    if numel < 0:
+        raise ValueError("numel must be non-negative")
+    if world_size <= 0:
+        raise ValueError("world_size must be positive")
+    if not 0 <= rank < world_size:
+        raise ValueError("rank must be in [0, world_size)")
+    shard_numel = (numel + world_size - 1) // world_size
+    padded_numel = shard_numel * world_size
+    start = rank * shard_numel
+    return Partition(numel, padded_numel, shard_numel, rank, world_size, start, start + shard_numel)
 
 
 def pad_flat(flat: torch.Tensor, padded_numel: int) -> torch.Tensor:
-    todo("pad_flat")
+    flat = flat.reshape(-1)
+    if padded_numel < flat.numel():
+        raise ValueError("padded_numel cannot be smaller than the input")
+    output = torch.zeros(padded_numel, dtype=flat.dtype, device=flat.device)
+    output[: flat.numel()].copy_(flat)
+    return output

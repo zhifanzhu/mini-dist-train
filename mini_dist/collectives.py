@@ -68,7 +68,44 @@ def tree_all_reduce_sum(tensor: torch.Tensor, group=None) -> torch.Tensor:
     P2P API. After they pass, ask a code-review agent to verify that both phases
     use a balanced tree rather than a linear chain or a hidden collective.
     """
-    todo("tree_all_reduce_sum")
+    ws = dist.get_world_size(group)
+    rank = dist.get_rank(group)
+
+    D = 0
+    while 2**D < ws:
+        D += 1
+    # now 2**d >= ws
+
+    buffer = torch.zeros_like(tensor)
+    offset = 1
+    for _ in range(D):
+        for i, rk in enumerate(range(0, ws, offset)):
+            if i % 2 == 0:
+                if rank == rk and rk + offset < ws:
+                    rr = dist.irecv(buffer, group=group, group_src=rk+offset)
+                    rr.wait()
+                    tensor += buffer
+            else:
+                if rank == rk:
+                    rs = dist.isend(tensor, group=group, group_dst=rk-offset)
+                    rs.wait()
+        offset *= 2
+
+    # Tree Broadcast
+    offset //= 2
+    for _ in range(D):
+        for i, rk in enumerate(range(0, ws, offset)):
+            if i % 2 == 0:
+                if rank == rk and rk + offset < ws:
+                    rs = dist.isend(tensor, group=group, group_dst=rk + offset)
+                    rs.wait()
+            else:
+                if rank == rk:
+                    rr = dist.irecv(tensor, group=group, group_src=rk - offset)
+                    rr.wait()
+        offset //= 2
+    
+    return tensor
 
 
 def ring_all_reduce_sum(tensor: torch.Tensor, group=None) -> torch.Tensor:

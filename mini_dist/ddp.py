@@ -22,7 +22,9 @@ class MiniDDP(nn.Module):
         return self.module(*args, **kwargs)
 
     def sync_gradients(self) -> None:
-        todo("MiniDDP.sync_gradients")
+        for parameter in self.module.parameters():
+            if parameter.grad is not None:
+                all_reduce_mean(parameter.grad)
 
     def enable_bucketed_hooks(self, bucket_cap_numel: int = 1_000_000) -> None:
         todo("MiniDDP.enable_bucketed_hooks")

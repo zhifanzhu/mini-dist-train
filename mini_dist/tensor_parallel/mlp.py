@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from mini_dist._todo import todo
+from .layers import ColumnParallelLinear, RowParallelLinear
 
 
 class TensorParallelMLP(nn.Module):
@@ -25,7 +25,17 @@ class TensorParallelMLP(nn.Module):
         activation: Callable[[torch.Tensor], torch.Tensor] = F.gelu,
     ):
         super().__init__()
-        todo("TensorParallelMLP.__init__")
+        if up_proj.out_features != down_proj.in_features:
+            raise ValueError(
+                "up_proj.out_features must equal down_proj.in_features"
+            )
+        self.group = group
+        self.activation = activation
+        self.up_proj = ColumnParallelLinear(
+            up_proj, group=group, gather_output=False
+        )
+        self.down_proj = RowParallelLinear(down_proj, group=group)
 
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
-        todo("TensorParallelMLP.forward")
+        local_hidden = self.activation(self.up_proj(tensor))
+        return self.down_proj(local_hidden)

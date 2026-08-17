@@ -89,6 +89,12 @@ def _worker(rank, world_size):
             mesh.tp_rank,
             mesh.tp_size,
         )
+        expected_tp_grad = _tp_shard(
+            fsdp_param.name,
+            reference_params[fsdp_param.name].grad,
+            mesh.tp_rank,
+            mesh.tp_size,
+        )
         assert fsdp_param.original_shape == expected_tp_param.shape
         torch.testing.assert_close(
             local_parameter,
@@ -96,7 +102,7 @@ def _worker(rank, world_size):
         )
         torch.testing.assert_close(
             local_parameter.grad,
-            _dp_local_shard(expected_tp_param.grad, fsdp_param.partition),
+            _dp_local_shard(expected_tp_grad, fsdp_param.partition),
         )
 
     optimizer.step()

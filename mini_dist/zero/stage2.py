@@ -92,10 +92,5 @@ class Zero2Optimizer:
 
     def zero_grad(self, set_to_none: bool = True):
         # This is covered by the testcases?
-        for p in self.params:
-            if p.grad is not None:
-                if set_to_none:
-                    p.grad = None
-                else:
-                    p.grad.zero_()
+        self.local_grad_shard.zero_()
         self.optimizer.zero_grad(set_to_none=set_to_none)

@@ -21,7 +21,7 @@ class ShardedTensor1D:
         flat = pad_flat(tensor.flatten(), pt.padded_numel)
         local_shard = flat[pt.start:pt.end]
         return cls(
-            loca_shard=local_shard,
+            local_shard=local_shard,
             partition=pt,
             original_shape=tensor.shape
         )
@@ -47,12 +47,20 @@ class MiniZeRO3(nn.Module):
 
     def __init__(self, module: nn.Module, *, group=None):
         super().__init__()
-        for child in module.children():
+        self.module = module
+        self.params = list(module.parameters())
+        self.shard_params = []
         for param in module.parameters():
-            ShardedTensor1D.from_tensor(
-                param, group
-            )
+            shard_param = ShardedTensor1D.from_tensor(
+                param, group=group)
+            self.shard_params.append( shard_param )
+        self.group = group
 
     def forward(self, *args, **kwargs):
 
-        todo("MiniZeRO3.forward")
+        with torch.no_grad():
+            for sp, p in zip(self.shard_params, self.params):
+                tensor = sp.all_gather(group=self.group)
+                p.copy_(tensor)
+
+        return self.module(*args, **kwargs)

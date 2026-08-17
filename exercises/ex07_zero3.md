@@ -5,6 +5,7 @@ Add parameter sharding. Implement flatten/pad/shard metadata for the generic ZeR
 
 Q: what about backward() pass? I guess it is omitted for educational purpose?
 Will my operation require additional backward() impl?
+Ans: Check ex08.
 
 ## Scope: do not infer module execution order
 

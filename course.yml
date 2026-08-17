@@ -95,3 +95,21 @@ chapters:
     depends_on: [ex08, ex10, ex13]
     test: tests/milestones/test_equivalence.py
     core: true
+  - id: ex17
+    name: tensor-parallel-linear
+    depends_on: [ex01]
+    test: tests/exercises/test_ex17_tensor_parallel_linear.py
+    core: false
+    note: extended track; explicit TP layout transitions and autograd duals
+  - id: ex18
+    name: tensor-parallel-mlp
+    depends_on: [ex17]
+    test: tests/exercises/test_ex18_tensor_parallel_mlp.py
+    core: false
+    note: extended track; keep the MLP intermediate activation feature-sharded
+  - id: ex19
+    name: hybrid-tp-fsdp
+    depends_on: [ex13, ex18]
+    test: tests/exercises/test_ex19_hybrid_parallel.py
+    core: false
+    note: extended track; four-rank 2D data/tensor-parallel mesh

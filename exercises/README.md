@@ -24,3 +24,15 @@ Each chapter extends the same `mini_dist` package. Do not copy your previous imp
 | ex16 | final equivalence | all core | compare numerics/memory/communication |
 
 Every chapter has a short markdown brief in this directory.
+
+## Extended tensor-parallel track
+
+These optional chapters branch from the collective layer and later recombine
+with FSDP. They use raw process groups to expose the sharding/layout algebra
+that PyTorch DTensor and JAX sharding APIs normally automate.
+
+| ID | Topic | Main dependency | What changes |
+|---|---|---|---|
+| ex17 | TP linear primitives | ex01 | autograd-aware layout transitions + column/row linear |
+| ex18 | TP MLP | ex17 | keep the intermediate feature activation sharded |
+| ex19 | 2D TP + FSDP | ex13/ex18 | named DP/TP groups + shard TP-local parameters |

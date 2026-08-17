@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 from collections.abc import Iterable
 import torch
+from torch import distributed as dist
 import torch.nn as nn
-from mini_dist.zero.common import Partition
+from mini_dist.zero.common import Partition, partition_1d, pad_flat
 from mini_dist._todo import todo
 
 
@@ -14,11 +15,31 @@ class ShardedTensor1D:
 
     @classmethod
     def from_tensor(cls, tensor: torch.Tensor, *, group=None) -> "ShardedTensor1D":
-        todo("ShardedTensor1D.from_tensor")
+        world_size = dist.get_world_size(group)
+        rank = dist.get_rank(group)
+        pt = partition_1d(tensor.numel(), rank, world_size)
+        flat = pad_flat(tensor.flatten(), pt.padded_numel)
+        local_shard = flat[pt.start:pt.end]
+        return cls(
+            loca_shard=local_shard,
+            partition=pt,
+            original_shape=tensor.shape
+        )
 
     def all_gather(self, *, group=None) -> torch.Tensor:
         """Return exact unpadded full tensor in original shape."""
-        todo("ShardedTensor1D.all_gather")
+        tensor_list = [
+            torch.zeros_like(self.local_shard)
+            for _ in range(self.partition.world_size)
+        ]
+        dist.all_gather(
+            tensor_list,
+            self.local_shard,
+            group=group
+        )
+        original_numel = self.partition.original_numel
+        tensor = torch.cat(tensor_list)[:original_numel]
+        return tensor.view(self.original_shape)
 
 
 class MiniZeRO3(nn.Module):
@@ -26,7 +47,12 @@ class MiniZeRO3(nn.Module):
 
     def __init__(self, module: nn.Module, *, group=None):
         super().__init__()
-        todo("MiniZeRO3.__init__")
+        for child in module.children():
+        for param in module.parameters():
+            ShardedTensor1D.from_tensor(
+                param, group
+            )
 
     def forward(self, *args, **kwargs):
+
         todo("MiniZeRO3.forward")

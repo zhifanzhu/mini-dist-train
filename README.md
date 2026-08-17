@@ -23,6 +23,10 @@ After completing the core track, you should be able to:
 - understand where ProcessGroupNCCL/NCCL sits below PyTorch and DeepSpeed, and use NCCL logging/async behavior in GPU labs;
 - run the same model under baseline, DDP, ZeRO, FSDP1-style, and FSDP2-style implementations and explain why the numerical updates agree while memory ownership and communication differ.
 
+The extended tensor-parallel track additionally reconstructs column-wise and
+row-wise linear layers, a feature-sharded MLP, and a two-dimensional TP+FSDP
+process mesh using explicit autograd-aware collectives.
+
 The intended outcome is not "I know the FSDP API." It is: **I can reconstruct why sharded-training frameworks have the abstractions and failure modes that they do.**
 
 ## Hardware requirements
@@ -47,6 +51,7 @@ With CPU + Gloo you can complete the majority of the conceptual/core exercises:
 - ZeRO-1/2/3 correctness;
 - FSDP1-style flattening/sharding;
 - FSDP2-style per-parameter sharding;
+- tensor-parallel linear/MLP correctness and four-process TP+FSDP composition;
 - most fault-injection exercises;
 - end-to-end numerical-equivalence tests.
 
@@ -128,6 +133,15 @@ final equivalence + memory/communication comparison
 
 The ring and tree labs are intentionally side branches: they compare two ways to build a collective from point-to-point communication, but the main framework uses `torch.distributed` collectives like real PyTorch/DeepSpeed implementations do.
 
+The optional tensor-parallel branch starts from collectives and rejoins the
+FSDP path in a two-dimensional mesh:
+
+```text
+collectives → TP linear styles → TP MLP ─────┐
+                                             ├→ 2D TP + FSDP
+ZeRO-3 → FSDP2 → fully_shard ────────────────┘
+```
+
 ## Install
 
 ```bash
@@ -196,11 +210,12 @@ mini_dist/
     zero/
     fsdp1/
     fsdp2/
+    tensor_parallel/
     engine.py
 
 exercises/
     README.md
-    ex00_...md ... ex16_...md
+    ex00_...md ... ex19_...md
 
 tests/
     smoke/

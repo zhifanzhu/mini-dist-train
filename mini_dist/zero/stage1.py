@@ -50,6 +50,9 @@ class Zero1Optimizer:
 
     def step(self):
         # replicate the gradient
+        # I think this can be further optimised:
+        # each rank only take its own start:end part, so I actually don't need to
+        # concat the full flat_grad. Let me see if I can make this in stage2.
         flat_grad = []
         for p in self.params:
             if p.grad is None:
@@ -79,4 +82,11 @@ class Zero1Optimizer:
         # every rank sees the same full param at this point.
 
     def zero_grad(self, set_to_none: bool = True):
+        # This is not in the testcases...
+        for p in self.params:
+            if p.grad is not None:
+                if set_to_none:
+                    p.grad = None
+                else:
+                    p.grad.zero_()
         self.optimizer.zero_grad(set_to_none=set_to_none)

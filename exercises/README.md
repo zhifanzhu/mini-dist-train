@@ -25,6 +25,13 @@ Each chapter extends the same `mini_dist` package. Do not copy your previous imp
 
 Every chapter has a short markdown brief in this directory.
 
+The learner is assumed to know ordinary PyTorch tensor/module/optimizer use.
+Less-common framework mechanisms that are necessary to enter an exercise—such
+as autograd hooks, temporary parameter views, process-group rank translation,
+or CUDA stream dependencies—are named in the matching brief. Discovering that
+an unfamiliar mechanism exists is not intended to be the exercise; reasoning
+through its distributed invariant and implementing it correctly is.
+
 ## Extended tensor-parallel track
 
 These optional chapters branch from the collective layer and later recombine

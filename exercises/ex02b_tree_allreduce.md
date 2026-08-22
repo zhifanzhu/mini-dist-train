@@ -6,14 +6,10 @@ The tests check numerical results for a five-rank default group, a single rank, 
 
 After the tests pass, ask Codex or another code-review agent to verify only the structural objective: both phases use point-to-point communication over a balanced tree rather than a linear chain, per-rank gather, or hidden collective. This narrow algorithm-structure review is part of ex02b.
 
-## PyTorch navigation hints
+## Files to implement
 
-- One useful way to reason about a balanced tree is a stride that doubles
-  during reduction and halves during dissemination. Guard partners that fall
-  outside `world_size`; this naturally handles non-powers of two.
-- As in ex02, tree arithmetic is easiest in group-local ranks, while classic
-  P2P `src=`/`dst=` arguments identify global ranks. Translate peers for a
-  non-contiguous subgroup.
-- A sender becomes inactive for the remaining reduction levels, but it must
-  participate again at the matching dissemination level. Write each rank's
-  ordered send/receive sequence before coding.
+- `mini_dist/collectives.py`
+
+## Hints
+
+- `torch.distributed.get_global_rank()`

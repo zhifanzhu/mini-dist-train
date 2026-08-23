@@ -5,3 +5,9 @@ Wrap the flat parameter with pre/post forward/backward behavior. The public trai
 ## Files to implement
 
 - `mini_dist/fsdp1/fsdp.py`
+
+
+## My notes
+
+Q: In https://docs.pytorch.org/tutorials/intermediate/FSDP1_tutorial.html, it says 
+"Discard parameter shards it has just collected". Is this happening in this tutorial? If not, what stops us from letting it happen? Otherwise, this is not a faithful implmenetation of FSDP's doc.

@@ -20,3 +20,5 @@ In addition, I feel this is a much simplified exercise than actual ZeRO-3. In th
 - https://deepspeed.readthedocs.io/en/latest/zero3.html
 
 I think for this exercise, ask Codex for hints are suggested.
+
+Q: It seems that after forward(), the ZeRO3 still retain the full parameter? Is this the same came in production ZeRO-3? Or where do they drop the full param?

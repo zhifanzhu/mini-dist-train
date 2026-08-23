@@ -50,22 +50,39 @@ class MiniZeRO3(nn.Module):
         self.module = module
         self.params = list(module.parameters())
         self.shard_params = []
+
+        world_size = dist.get_world_size(group=group)
+
+        # Need to avoid closure variable catching
+        def make_hook(param, shard_param):
+            def hook(p):
+                if p.grad is None:
+                    return
+                """ Grad is full gradient for param """
+                grad_flat = p.grad.flatten()
+                grad_flat = pad_flat(
+                    grad_flat, padded_numel=shard_param.partition.padded_numel)
+                with torch.no_grad():
+                    local_shard_grad = torch.zeros_like(shard_param.local_shard)
+                    grad_list = list(torch.chunk(grad_flat, world_size))
+                    dist.reduce_scatter(
+                        local_shard_grad,
+                        grad_list,
+                        op=dist.ReduceOp.SUM,
+                        group=self.group)
+                    local_shard_grad.div_(world_size)
+                param.data = shard_param.local_shard
+                param.grad = local_shard_grad
+
+            return hook
+
         for param in module.parameters():
             shard_param = ShardedTensor1D.from_tensor(
                 param, group=group)
             param.data = shard_param.local_shard
-
-            def hook(p):
-                print(f"Hook for {p=} {p.numel()=} {p.grad.numel()=}")
-                with torch.no_grad():
-                    if p.grad is not None:
-                        shard_grad = ShardedTensor1D.from_tensor(
-                            param.grad, group=group)
-                        p.grad.data = shard_grad.local_shard
-                    p.data = shard_param.local_shard
-                print(f"After hook {p.numel()=} {p.grad.numel()=}")
-
-            param.register_post_accumulate_grad_hook(hook)
+            # param.register_hook(make_hook(param, shard_param))
+            param.register_post_accumulate_grad_hook(
+                make_hook(param, shard_param))
             self.shard_params.append( shard_param )
 
         self.group = group
@@ -79,10 +96,3 @@ class MiniZeRO3(nn.Module):
 
         out = self.module(*args, **kwargs)
         return out
-
-        # with torch.no_grad():
-        #     for sp, p in zip(self.shard_params, self.params):
-        #         tensor = sp.all_gather(group=self.group)
-        #         p.data = sp.local_shard
-        
-        # return out

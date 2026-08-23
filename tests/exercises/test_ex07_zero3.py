@@ -58,19 +58,32 @@ def _backward_worker(rank, world_size):
     model(x).sum().backward()
 
     parameters = list(module.named_parameters())
-    locally_resharded = all(
+    parameters_locally_resharded = all(
         parameter.numel()
         == partition_1d(expected.numel(), rank, world_size).shard_numel
-        and parameter.grad is not None
+        for (_, parameter), (_, expected) in zip(parameters, reference_parameters)
+    )
+    gradients_locally_resharded = all(
+        parameter.grad is not None
         and parameter.grad.numel()
         == partition_1d(expected.numel(), rank, world_size).shard_numel
         for (_, parameter), (_, expected) in zip(parameters, reference_parameters)
     )
-    resharded_on_all_ranks = torch.tensor(int(locally_resharded))
-    torch.distributed.all_reduce(resharded_on_all_ranks, op=torch.distributed.ReduceOp.MIN)
-    assert resharded_on_all_ranks.item(), (
-        "After backward, MiniZeRO3 must restore rank-local parameter storage "
-        "and leave only the rank-local reduced gradient shard"
+
+    parameters_resharded_on_all_ranks = torch.tensor(int(parameters_locally_resharded))
+    gradients_resharded_on_all_ranks = torch.tensor(int(gradients_locally_resharded))
+    torch.distributed.all_reduce(
+        parameters_resharded_on_all_ranks, op=torch.distributed.ReduceOp.MIN
+    )
+    torch.distributed.all_reduce(
+        gradients_resharded_on_all_ranks, op=torch.distributed.ReduceOp.MIN
+    )
+
+    assert parameters_resharded_on_all_ranks.item(), (
+        "After backward, MiniZeRO3 must restore rank-local parameter storage"
+    )
+    assert gradients_resharded_on_all_ranks.item(), (
+        "After backward, MiniZeRO3 must leave only the rank-local reduced gradient shard"
     )
 
     for (name, parameter), (_, expected) in zip(parameters, reference_parameters):

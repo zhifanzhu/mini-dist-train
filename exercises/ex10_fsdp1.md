@@ -8,6 +8,9 @@ This exercise keeps the gathered flat parameter through backward, matching `SHAR
 
 - `mini_dist/fsdp1/fsdp.py`
 
+## Hints
+
+- `Tensor.register_hook()` on the result of `FlatParameterHandle.unshard()`
 
 ## My notes
 

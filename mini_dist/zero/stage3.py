@@ -76,7 +76,7 @@ class MiniZeRO3(nn.Module):
 
             return hook
 
-        for param in module.parameters():
+        for name, param in module.named_parameters():
             shard_param = ShardedTensor1D.from_tensor(
                 param, group=group)
             param.data = shard_param.local_shard

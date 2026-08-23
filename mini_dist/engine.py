@@ -27,10 +27,10 @@ class MiniDeepSpeedEngine:
         elif self.zero_stage == 3:
             self.zero3 = MiniZeRO3(
                 module, group=group)
-            self.optimizer = Zero2Optimizer(
-                module.parameters(), optimizer_cls,
-                group=group, **optim_kwargs
-            )
+            # module's params are already sharded.
+            self.optimizer = optimizer_cls(
+                module.parameters(),
+                **optim_kwargs)
         else:
             raise ValueError(f"Unknown {self.zero_stage=}")
 
@@ -62,5 +62,11 @@ class MiniDeepSpeedEngine:
             self.optimizer.step()
 
         else:  # 3 
-            self.optimizer.reduce_scatter_gradients()
             self.optimizer.step()
+
+            with torch.no_grad():
+                for sp, p in zip(
+                    self.zero3.shard_params, self.module.parameters()
+                    ):
+                    tensor = sp.all_gather(group=self.group)
+                    p.data = tensor

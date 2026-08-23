@@ -5,3 +5,7 @@ Build a permanent flat parameter representation for a module. Track original sha
 ## Files to implement
 
 - `mini_dist/fsdp1/flat_param.py`
+
+## My notes
+
+So ALL parameters are flattened together and sharded? the doc really doesn't make it explicit.

@@ -53,7 +53,21 @@ class MiniZeRO3(nn.Module):
         for param in module.parameters():
             shard_param = ShardedTensor1D.from_tensor(
                 param, group=group)
+            param.data = shard_param.local_shard
+
+            def hook(p):
+                print(f"Hook for {p=} {p.numel()=} {p.grad.numel()=}")
+                with torch.no_grad():
+                    if p.grad is not None:
+                        shard_grad = ShardedTensor1D.from_tensor(
+                            param.grad, group=group)
+                        p.grad.data = shard_grad.local_shard
+                    p.data = shard_param.local_shard
+                print(f"After hook {p.numel()=} {p.grad.numel()=}")
+
+            param.register_post_accumulate_grad_hook(hook)
             self.shard_params.append( shard_param )
+
         self.group = group
 
     def forward(self, *args, **kwargs):
@@ -61,6 +75,14 @@ class MiniZeRO3(nn.Module):
         with torch.no_grad():
             for sp, p in zip(self.shard_params, self.params):
                 tensor = sp.all_gather(group=self.group)
-                p.copy_(tensor)
+                p.data = tensor
 
-        return self.module(*args, **kwargs)
+        out = self.module(*args, **kwargs)
+        return out
+
+        # with torch.no_grad():
+        #     for sp, p in zip(self.shard_params, self.params):
+        #         tensor = sp.all_gather(group=self.group)
+        #         p.data = sp.local_shard
+        
+        # return out

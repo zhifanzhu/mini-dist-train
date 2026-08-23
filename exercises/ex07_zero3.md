@@ -14,4 +14,9 @@ Add parameter sharding. Implement flatten/pad/shard metadata for the generic ZeR
 
 Q: what about backward() pass? I guess it is omitted for educational purpose?
 Will my operation require additional backward() impl?
-Ans: Check ex08.
+Ans: this is updated. See above hints.
+
+In addition, I feel this is a much simplified exercise than actual ZeRO-3. In the actual ZeRO-3, submodules will be fit to memory in several phases during forward, but here the testcase only test for a single monolithic module.
+- https://deepspeed.readthedocs.io/en/latest/zero3.html
+
+I think for this exercise, ask Codex for hints are suggested.

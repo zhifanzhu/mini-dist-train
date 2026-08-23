@@ -16,38 +16,36 @@ class MiniFSDP1(nn.Module):
 
         self.handle = FlatParameterHandle(
             module, group=self.group)
+
+        self.flat_param = nn.Parameter(
+            self.handle.local_shard.clone(), requires_grad=True)
         
-        self.module.parameters = None
+        def nullify_parameters(m):
+            _null_named_params = {n: None for n, _ in m.named_parameters()}
+            m._parameters = _null_named_params
+        nullify_parameters(self.module)
 
-        print(list(self.named_parameters()))
-        
-        # def make_hook():
-        #     def hook(p):
-        #         """ p is rank's full param gradient """
-        #         if p.grad is None:
-        #             return
-        #         shard_grad = torch.zeros_like(self.handle.shard.local_shard)
-        #         grad =
-        #         dist.reduce_scatter(
-        #             shard_grad,
-        #             p.grad
+        self.local_shard = nn.Parameter(
+            self.handle.shard.local_shard, requires_grad=True
+        )
 
-        #         )
-        #         dist.scatter_
-        #         pass
+        def make_hook():
+            def hook():
+                nullify_parameters(self.module)
+            return hook
 
-        #     return hook
+        # print(list(self.named_parameters()))
 
     def forward(self, *args, **kwargs):
 
-        with torch.no_grad():
-            full_flat = self.handle.unshard()
+        with torch.no_grad():  # do we still need torch.no_grad()?
+            full_flat = self.handle.unshard().requires_grad_(True)
             named_views = self.handle.views(full_flat)
-            for name, param in self.module.named_parameters():
-                param.data = named_views[name]
+            for name, view in named_views.items():
+                self.module._parameters[name] = view
 
         out = self.module(*args, **kwargs)
         
-        if self.reshard_after_forward:
-            pass #todo
+        # if self.reshard_after_forward:
+        #     pass #todo
         return out

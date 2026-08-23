@@ -28,12 +28,84 @@ def _module_worker(rank, world_size):
     torch.testing.assert_close(model(x), reference(x))
 
 
+def _backward_worker(rank, world_size):
+    torch.manual_seed(17)
+    module = nn.Linear(3, 1)
+    reference = nn.Linear(3, 1)
+    reference.load_state_dict(module.state_dict())
+    model = MiniZeRO3(module)
+
+    parameters = list(module.named_parameters())
+    reference_parameters = list(reference.named_parameters())
+    locally_sharded = all(
+        parameter.numel()
+        == partition_1d(expected.numel(), rank, world_size).shard_numel
+        for (_, parameter), (_, expected) in zip(parameters, reference_parameters)
+    )
+    sharded_on_all_ranks = torch.tensor(int(locally_sharded))
+    torch.distributed.all_reduce(sharded_on_all_ranks, op=torch.distributed.ReduceOp.MIN)
+    assert sharded_on_all_ranks.item(), (
+        "MiniZeRO3 must keep only rank-local parameter storage outside computation; "
+        "retaining full parameters makes stage 3 equivalent to stage 2"
+    )
+
+    x = torch.tensor([[float(rank + 1), 2.0, -1.0]])
+    reference(x).sum().backward()
+    for parameter in reference.parameters():
+        torch.distributed.all_reduce(parameter.grad)
+        parameter.grad.div_(world_size)
+
+    model(x).sum().backward()
+
+    parameters = list(module.named_parameters())
+    locally_resharded = all(
+        parameter.numel()
+        == partition_1d(expected.numel(), rank, world_size).shard_numel
+        and parameter.grad is not None
+        and parameter.grad.numel()
+        == partition_1d(expected.numel(), rank, world_size).shard_numel
+        for (_, parameter), (_, expected) in zip(parameters, reference_parameters)
+    )
+    resharded_on_all_ranks = torch.tensor(int(locally_resharded))
+    torch.distributed.all_reduce(resharded_on_all_ranks, op=torch.distributed.ReduceOp.MIN)
+    assert resharded_on_all_ranks.item(), (
+        "After backward, MiniZeRO3 must restore rank-local parameter storage "
+        "and leave only the rank-local reduced gradient shard"
+    )
+
+    for (name, parameter), (_, expected) in zip(parameters, reference_parameters):
+        partition = partition_1d(expected.numel(), rank, world_size)
+        padded_parameter = torch.zeros(
+            partition.padded_numel, dtype=expected.dtype, device=expected.device
+        )
+        padded_parameter[: expected.numel()] = expected.detach().reshape(-1)
+        expected_parameter_shard = padded_parameter[partition.start : partition.end]
+        torch.testing.assert_close(
+            parameter.detach().reshape(-1),
+            expected_parameter_shard,
+            msg=f"Backward must restore the authoritative parameter shard for {name!r}",
+        )
+
+        padded_gradient = torch.zeros_like(padded_parameter)
+        padded_gradient[: expected.grad.numel()] = expected.grad.reshape(-1)
+        expected_gradient_shard = padded_gradient[partition.start : partition.end]
+        torch.testing.assert_close(
+            parameter.grad.reshape(-1),
+            expected_gradient_shard,
+            msg=f"Backward must reduce-scatter the mean gradient for {name!r}",
+        )
+
+
 def test_zero3_padding_and_exact_reconstruction():
     run_gloo(4, _worker)
 
 
 def test_zero3_module_materializes_parameters_for_forward():
     run_gloo(2, _module_worker)
+
+
+def test_zero3_backward_reduce_scatters_gradients_and_reshards_parameters():
+    run_gloo(2, _backward_worker)
 
 
 @pytest.mark.parametrize("numel,world_size", [(16, 4), (17, 4), (1, 4), (31, 8), (0, 4)])

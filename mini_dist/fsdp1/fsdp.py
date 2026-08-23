@@ -17,18 +17,26 @@ class MiniFSDP1(nn.Module):
         self.handle = FlatParameterHandle(
             module, group=self.group)
         
-        def make_hook():
-            def hook(p):
-                """ p is rank's full param gradient """
-                dist.reduce_scatter(
+        self.module.parameters = None
 
-                )
-                dist.scatter_
-                pass
+        print(list(self.named_parameters()))
+        
+        # def make_hook():
+        #     def hook(p):
+        #         """ p is rank's full param gradient """
+        #         if p.grad is None:
+        #             return
+        #         shard_grad = torch.zeros_like(self.handle.shard.local_shard)
+        #         grad =
+        #         dist.reduce_scatter(
+        #             shard_grad,
+        #             p.grad
 
-            return hook
+        #         )
+        #         dist.scatter_
+        #         pass
 
-        todo("MiniFSDP1.__init__")
+        #     return hook
 
     def forward(self, *args, **kwargs):
 

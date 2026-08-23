@@ -4,6 +4,10 @@ A cumulative, test-driven distributed-training course that grows one small frame
 
 This repository is intentionally **not** a collection of independent toy scripts. Later exercises import and depend on earlier implementations, so bugs in sharding, padding, bucket metadata, ownership, or collective ordering can surface much later in the stack—closer to a real distributed framework.
 
+## Author words
+
+ex10 is not a good exercise: too much niche pytorch mechanisms.
+
 ## What you will be able to do at the end
 
 After completing the core track, you should be able to:

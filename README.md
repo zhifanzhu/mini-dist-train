@@ -4,7 +4,7 @@ A cumulative, test-driven distributed-training course that grows one small frame
 
 This repository is intentionally **not** a collection of independent toy scripts. Later exercises import and depend on earlier implementations, so bugs in sharding, padding, bucket metadata, ownership, or collective ordering can surface much later in the stack—closer to a real distributed framework.
 
-## Author words
+## Author words (Human Written)
 
 I wanted to learn what is under the hood of distributed training libraries,
 and I believe the best learning is to actually implement them.

@@ -1,8 +1,6 @@
 # mini-dist-train
 
-A cumulative, test-driven distributed-training course that grows one small framework from raw process groups into DDP, ZeRO, FSDP1-style, and FSDP2-style training.
-
-This repository is intentionally **not** a collection of independent toy scripts. Later exercises import and depend on earlier implementations, so bugs in sharding, padding, bucket metadata, ownership, or collective ordering can surface much later in the stack—closer to a real distributed framework.
+A cumulative, test-driven distributed-training course that grows one small framework from raw process groups into DDP, ZeRO, FSDP1-style, and FSDP2-style training. Later exercises import and depend on earlier implementations of preview exercises.
 
 ## Author words (Human Written)
 

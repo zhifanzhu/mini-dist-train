@@ -20,6 +20,12 @@ class MiniDDP(nn.Module):
         self.num_bucket_allreduces = 0  # increment once per launched bucket collective in ex04
 
     def forward(self, *args, **kwargs):
+        """
+        In DDP, even though this code is shared across ranks,
+         the *args, and **kwargs are different across ranks.
+         These different inputs are supplied by the DataLoader, who provides different samples
+             according to different ranks.
+        """
         return self.module(*args, **kwargs)
 
     def sync_gradients(self) -> None:
